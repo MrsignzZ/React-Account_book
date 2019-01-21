@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Record from './Record';
 // import { getJSON } from 'jquery';
 import axios from 'axios';
+import * as RecordsAPI from '../utils/RecordsAPI'
+
 class Records extends Component {
   constructor(props) {
     super(props);
@@ -28,8 +30,9 @@ class Records extends Component {
     // );
 
     // axios 请求API
+
     axios
-      .get('http://localhost:3004/records')
+      .get(`${RecordsAPI.api}/records`)
       .then(res =>
         this.setState({
           records: res.data,
