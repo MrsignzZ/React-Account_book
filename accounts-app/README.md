@@ -13,3 +13,4 @@
   3. 根目录新建.env.development.local => REACT_APP_RECORDS_API_URL=http://localhost:3004
   4. 可以放多个变量,由于涉及到以后的更新操作，用户字符串模板
     .get(`${RecordsAPI.api}/records`)
+  5. react对input传值 ref

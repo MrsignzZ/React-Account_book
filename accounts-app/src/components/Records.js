@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import Record from './Record';
 // import { getJSON } from 'jquery';
 import axios from 'axios';
-import * as RecordsAPI from '../utils/RecordsAPI'
-
+import * as RecordsAPI from '../utils/RecordsAPI';
+import RecordForm from './RecordForm';
+import AmountBox from './AmountBox';
 class Records extends Component {
   constructor(props) {
     super(props);
@@ -47,34 +48,103 @@ class Records extends Component {
       );
   }
 
+  addRecord(record) {
+    this.setState({
+      error: null,
+      isLoading: true,
+      records: [...this.state.records, record]
+    });
+  }
+
+  updateRecord(record, data) {
+    const recordIndex = this.state.records.indexOf(record);
+    const newRecords = this.state.records.map((item, index) => {
+      if (index !== recordIndex) {
+        return item;
+      }
+      return {
+        ...item,
+        ...data
+      };
+    });
+    this.setState({
+      records: newRecords
+    });
+  }
+
+  deleteRecord(record) {
+    const recordIndex = this.state.records.indexOf(record);
+    const newRecords = this.state.records.filter(
+      (item, index) => index !== recordIndex
+    );
+    this.setState({
+      records: newRecords
+    });
+  }
+
+  credits() {
+    let credits = this.state.records.filter(record => record.amount >= 0);
+    return credits.reduce((prev, curr) => {
+      return prev + Number.parseInt(curr.amount, 0);
+    }, 0);
+  }
+
+  debits() {
+    let credits = this.state.records.filter(record => record.amount < 0);
+    return credits.reduce((prev, curr) => {
+      return prev + Number.parseInt(curr.amount, 0);
+    }, 0);
+  }
+
+  balance() {
+    return this.credits() + this.debits()
+  }
+
   render() {
     const { error, isLoading, records } = this.state;
+    let recordsComponent;
 
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoading) {
-      return <div>Loading...</div>;
+      recordsComponent = <div>Loading...</div>;
     } else {
-      return (
-        <div>
-          <h2>Records</h2>
-          <table className="table table-bordered">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Title</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records.map(record => (
-                <Record key={record.id} {...record} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+      recordsComponent = (
+        <table className="table table-bordered">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Title</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {records.map(record => (
+              <Record
+                key={record.id}
+                record={record}
+                handleEditRecord={this.updateRecord.bind(this)}
+                handleDeleteRecord={this.deleteRecord.bind(this)}
+              />
+            ))}
+          </tbody>
+        </table>
       );
     }
+
+    return (
+      <div>
+        <h2>Records</h2>
+        <div className="row mb-3">
+          <AmountBox text="Credits" type="success" amount={this.credits()} />
+          <AmountBox text="Debits" type="danger" amount={this.debits()} />
+          <AmountBox text="Balance" type="info" amount={this.balance()} />
+        </div>
+        <RecordForm handleNewRecord={this.addRecord.bind(this)} />
+        {recordsComponent}
+      </div>
+    );
   }
 }
 
